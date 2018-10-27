@@ -98,8 +98,51 @@ int main() {
           * Both are in between [-1, 1].
           *
           */
-          double steer_value;
-          double throttle_value;
+
+          // Waypoints to car coordinates
+          cout << "Starting to find waypoints" << endl;
+          vector<double> carX;
+          vector<double> carY;
+
+          for (int i = 0; i < ptsx.size(); i ++) {
+            double delta_x = ptsx[i] - px;
+            double delta_y = ptsy[i] - py;
+
+            double m_psi = 0 - psi;
+
+            carX.push_back(delta_x * cos(m_psi) - delta_y * sin(m_psi));
+            carY.push_back(delta_x * sin(m_psi) + delta_y * cos(m_psi));
+          }
+
+
+          double* ptrx = &carX[0];
+          double* ptry = &carY[0];
+
+          Eigen::Map<Eigen::VectorXd> carXeig(ptrx, 6);
+          Eigen::Map<Eigen::VectorXd> carYeig(ptry, 6);
+
+          auto coeffs = polyfit(carXeig, carYeig, 3);
+          double cte = polyeval(coeffs, 0);
+          double epsi = -atan(coeffs[1]);
+
+          Eigen::VectorXd state(6);
+          state << 0, 0, 0, v, cte, epsi;
+          auto vars = mpc.Solve(state, coeffs);
+
+          double steer_value = vars[0] / (deg2rad(25));
+          double throttle_value = vars[1];
+
+          vector<double> mpc_x_vals;
+          vector<double> mpc_y_vals;
+          
+          for (int i = 2; i < vars.size(); i ++) {
+            if (i %2 == 0) {
+              mpc_x_vals.push_back(vars[i]);
+            } else {
+              mpc_y_vals.push_back(vars[i]);
+            }
+          }
+
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
@@ -108,8 +151,6 @@ int main() {
           msgJson["throttle"] = throttle_value;
 
           //Display the MPC predicted trajectory 
-          vector<double> mpc_x_vals;
-          vector<double> mpc_y_vals;
 
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Green line
