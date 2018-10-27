@@ -3,6 +3,26 @@ Self-Driving Car Engineer Nanodegree Program
 
 ---
 
+[![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/8TpdHsCH4yI/0.jpg)](http://www.youtube.com/watch?v=8TpdHsCH4yI)
+
+## Configurations
+
+### N and dt.
+
+I initially tried the N and dt values given in the example which were something like 0.05 and 25. These did not work so well, plus I figured if I'm only fitting a 3rd degree polynomial I don't need so much data. With these values the car only looks ahead just over one second and fits many points over a 3rd degree polynomial. In order to increase the look ahead and decrease the complexity of the data providing smoother fits I decreased my N to 16 and increased my dt to 1/5. I tried other recommendations I found online such as 10 and 1/10th which worked alright but I wanted a the green line on the video to be longer. 
+
+### Preprocessing
+
+I transform the waypoints into the vehicle coordinate system to simplify the polynomial fitting.
+
+### State Model 
+
+I used the model from the lectures which included x and y coordinates, velocity, orientation, cross track error and bearing error. The actuators were the steering and throttle values. 
+
+### Latancy
+
+In order to deal with latency I applied the acctuations a timestep later to account for the latency. This is a little bit dodgey because my timesteps adn latency are not the same value, but I figured in real life I would not know the exact value of the latency and the driving seemed to work okay.
+
 ## Dependencies
 
 * cmake >= 3.5
